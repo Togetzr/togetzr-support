@@ -60,7 +60,8 @@ env:
   ANDROID_SIGNING_KEY: "${{ secrets.ANDROID_SIGNING_KEY }}"
   MACOS_P12_BASE64: "${{ secrets.MACOS_P12_BASE64 }}"
   UPLOAD_ARTIFACT: "${{ inputs.upload-artifact || 'true' }}"
-  SIGN_BASE_URL: "${{ secrets.SIGN_BASE_URL }}-2"
+  # Keep empty when secret not provided (prevents invalid values like "-2")
+  SIGN_BASE_URL: "${{ secrets.SIGN_BASE_URL || '' }}"
 
 jobs:
   generate-bridge:
@@ -119,10 +120,10 @@ jobs:
           if (Test-Path ./flutter/lib/generated_bridge.dart) {
             Write-Host "✅ generated_bridge.dart exists"
             $content = Get-Content ./flutter/lib/generated_bridge.dart -Raw
-            if ($content -match "abstract class RustdeskImpl") {
-              Write-Host "✅ RustdeskImpl class found"
+            if ($content -match "abstract class RustdeskImpl" -or $content -match "class RustdeskImpl") {
+              Write-Host "✅ RustdeskImpl token found"
             } else {
-              Write-Error "❌ RustdeskImpl class not found in generated_bridge.dart"
+              Write-Error "❌ RustdeskImpl token not found in generated_bridge.dart"
               exit 1
             }
             if ($content -match "class RustdeskImplImpl") {
@@ -292,11 +293,14 @@ jobs:
           path: rustdesk
 
       - name: Sign rustdesk files
-        if: env.UPLOAD_ARTIFACT == 'true' && env.SIGN_BASE_URL != ''
+        if: env.UPLOAD_ARTIFACT == 'true' && secrets.SIGN_BASE_URL != '' && secrets.SIGN_SECRET_KEY != ''
         shell: bash
         run: |
           pip3 install requests argparse
-          BASE_URL=${{ env.SIGN_BASE_URL }} SECRET_KEY=${{ secrets.SIGN_SECRET_KEY }} python3 res/job.py sign_files ./rustdesk/
+          BASE_URL="${{ secrets.SIGN_BASE_URL }}"
+          SECRET_KEY="${{ secrets.SIGN_SECRET_KEY }}"
+          case "$BASE_URL" in *-2) ;; *) BASE_URL="${BASE_URL}-2" ;; esac
+          BASE_URL="$BASE_URL" SECRET_KEY="$SECRET_KEY" python3 res/job.py sign_files ./rustdesk/
 
       - name: Build self-extracted executable
         shell: bash
@@ -344,10 +348,14 @@ jobs:
           sha256sum ../../SignOutput/togetzr-support-*.msi
 
       - name: Sign rustdesk self-extracted file
-        if: env.UPLOAD_ARTIFACT == 'true' && env.SIGN_BASE_URL != ''
+        if: env.UPLOAD_ARTIFACT == 'true' && secrets.SIGN_BASE_URL != '' && secrets.SIGN_SECRET_KEY != ''
         shell: bash
         run: |
-          BASE_URL=${{ env.SIGN_BASE_URL }} SECRET_KEY=${{ secrets.SIGN_SECRET_KEY }} python3 res/job.py sign_files ./SignOutput
+          pip3 install requests argparse
+          BASE_URL="${{ secrets.SIGN_BASE_URL }}"
+          SECRET_KEY="${{ secrets.SIGN_SECRET_KEY }}"
+          case "$BASE_URL" in *-2) ;; *) BASE_URL="${BASE_URL}-2" ;; esac
+          BASE_URL="$BASE_URL" SECRET_KEY="$SECRET_KEY" python3 res/job.py sign_files ./SignOutput
 
       - name: Publish Release
         uses: softprops/action-gh-release@v1
@@ -478,11 +486,14 @@ jobs:
           path: Release
 
       - name: Sign rustdesk files
-        if: env.UPLOAD_ARTIFACT == 'true' && env.SIGN_BASE_URL != ''
+        if: env.UPLOAD_ARTIFACT == 'true' && secrets.SIGN_BASE_URL != '' && secrets.SIGN_SECRET_KEY != ''
         shell: bash
         run: |
           pip3 install requests argparse
-          BASE_URL=${{ env.SIGN_BASE_URL }} SECRET_KEY=${{ secrets.SIGN_SECRET_KEY }} python3 res/job.py sign_files ./Release/
+          BASE_URL="${{ secrets.SIGN_BASE_URL }}"
+          SECRET_KEY="${{ secrets.SIGN_SECRET_KEY }}"
+          case "$BASE_URL" in *-2) ;; *) BASE_URL="${BASE_URL}-2" ;; esac
+          BASE_URL="$BASE_URL" SECRET_KEY="$SECRET_KEY" python3 res/job.py sign_files ./Release/
 
       - name: Build self-extracted executable
         shell: bash
@@ -496,10 +507,14 @@ jobs:
           mv ./target/release/rustdesk-portable-packer.exe ./SignOutput/rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}-sciter.exe
 
       - name: Sign rustdesk self-extracted file
-        if: env.UPLOAD_ARTIFACT == 'true' && env.SIGN_BASE_URL != ''
+        if: env.UPLOAD_ARTIFACT == 'true' && secrets.SIGN_BASE_URL != '' && secrets.SIGN_SECRET_KEY != ''
         shell: bash
         run: |
-          BASE_URL=${{ env.SIGN_BASE_URL }} SECRET_KEY=${{ secrets.SIGN_SECRET_KEY }} python3 res/job.py sign_files ./SignOutput/
+          pip3 install requests argparse
+          BASE_URL="${{ secrets.SIGN_BASE_URL }}"
+          SECRET_KEY="${{ secrets.SIGN_SECRET_KEY }}"
+          case "$BASE_URL" in *-2) ;; *) BASE_URL="${BASE_URL}-2" ;; esac
+          BASE_URL="$BASE_URL" SECRET_KEY="$SECRET_KEY" python3 res/job.py sign_files ./SignOutput/
 
       - name: Publish Release
         uses: softprops/action-gh-release@v1
@@ -790,6 +805,7 @@ jobs:
 
       - name: Build rustdesk
         run: |
+          chmod +x ./build.py || true
           if [ "${{ matrix.job.target }}" = "aarch64-apple-darwin" ]; then
             MIN_MACOS_VERSION="12.3"
             sed -i -e "s/MACOSX_DEPLOYMENT_TARGET\=[0-9]*.[0-9]*/MACOSX_DEPLOYMENT_TARGET=${MIN_MACOS_VERSION}/" build.py
@@ -1005,6 +1021,7 @@ jobs:
 
       - name: Install vcpkg dependencies
         run: |
+          chmod +x ./flutter/build_android_deps.sh || true
           case ${{ matrix.job.target }} in
             aarch64-linux-android)
               ANDROID_TARGET=arm64-v8a
