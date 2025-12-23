@@ -13,7 +13,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../common.dart';
-import '../generated_bridge.dart';
+import '../generated_bridge.dart' show TogetzrSupport, TogetzrSupportImpl;
 
 final class RgbaFrame extends Struct {
   @Uint32()
