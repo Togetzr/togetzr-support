@@ -19,6 +19,11 @@ on:
         type: string
         default: "nightly"
         description: 'Tag name for release'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/flutter-build.yml'
 
 # NOTE: F-Droid builder script 'flutter/build_fdroid.sh' reads environment
 # variables from this workflow!
