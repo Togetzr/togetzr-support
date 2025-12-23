@@ -1474,6 +1474,20 @@ jobs:
           name: bridge-artifact
           path: ./
 
+      - name: Verify bridge files for Linux build
+        if: matrix.job.arch == 'x86_64' || env.UPLOAD_ARTIFACT == 'true'
+        run: |
+          if [ ! -f ./flutter/lib/generated_bridge.dart ]; then
+            echo "❌ generated_bridge.dart not found"
+            exit 1
+          fi
+          if ! grep -q "RustdeskImpl" ./flutter/lib/generated_bridge.dart; then
+            echo "❌ RustdeskImpl not found in generated_bridge.dart"
+            head -n 50 ./flutter/lib/generated_bridge.dart
+            exit 1
+          fi
+          echo "✅ Bridge files verified"
+
       - name: Setup vcpkg with Github Actions binary cache
         if: matrix.job.arch == 'x86_64' || env.UPLOAD_ARTIFACT == 'true'
         uses: lukka/run-vcpkg@v11
@@ -1501,13 +1515,6 @@ jobs:
           fi
           head -n 100 "${VCPKG_ROOT}/buildtrees/ffmpeg/build-${{ matrix.job.vcpkg-triplet }}-rel-out.log" || true
         shell: bash
-
-      - name: Restore bridge files
-        if: matrix.job.arch == 'x86_64' || env.UPLOAD_ARTIFACT == 'true'
-        uses: actions/download-artifact@master
-        with:
-          name: bridge-artifact
-          path: ./
 
       - uses: rustdesk-org/run-on-arch-action@amd64-support
         name: Build rustdesk
