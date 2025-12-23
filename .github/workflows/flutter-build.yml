@@ -270,6 +270,13 @@ jobs:
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v2
 
+      - name: Rename executable for MSI compatibility
+        if: env.UPLOAD_ARTIFACT == 'true'
+        run: |
+          if (Test-Path ./rustdesk/togetzr_support.exe) {
+            Copy-Item ./rustdesk/togetzr_support.exe ./rustdesk/"Togetzr Support.exe" -Force
+          }
+
       - name: Build msi
         if: env.UPLOAD_ARTIFACT == 'true'
         run: |
