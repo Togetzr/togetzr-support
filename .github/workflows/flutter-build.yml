@@ -113,6 +113,31 @@ jobs:
           name: bridge-artifact
           path: ./
 
+      - name: Verify bridge files
+        run: |
+          Write-Host "Checking for generated_bridge.dart..."
+          if (Test-Path ./flutter/lib/generated_bridge.dart) {
+            Write-Host "✅ generated_bridge.dart exists"
+            $content = Get-Content ./flutter/lib/generated_bridge.dart -Raw
+            if ($content -match "abstract class RustdeskImpl") {
+              Write-Host "✅ RustdeskImpl class found"
+            } else {
+              Write-Error "❌ RustdeskImpl class not found in generated_bridge.dart"
+              exit 1
+            }
+            if ($content -match "class RustdeskImplImpl") {
+              Write-Host "✅ RustdeskImplImpl class found"
+            } else {
+              Write-Error "❌ RustdeskImplImpl class not found in generated_bridge.dart"
+              exit 1
+            }
+          } else {
+            Write-Error "❌ generated_bridge.dart not found at ./flutter/lib/generated_bridge.dart"
+            Write-Host "Contents of ./flutter/lib/:"
+            Get-ChildItem ./flutter/lib/ | Select-Object Name
+            exit 1
+          }
+
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v1
         with:
