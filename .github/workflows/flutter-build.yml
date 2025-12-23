@@ -448,7 +448,7 @@ jobs:
             ./SignOutput/rustdesk-*.exe
 
   build-rustdesk-ios:
-    if: env.UPLOAD_ARTIFACT == 'true'
+    if: inputs.upload-artifact != false
     name: build rustdesk ios ipa
     runs-on: ${{ matrix.job.os }}
     needs: [generate-bridge]
@@ -791,7 +791,7 @@ jobs:
       - build-for-windows-flutter
       - build-for-windows-sciter
     runs-on: ubuntu-latest
-    if: env.UPLOAD_ARTIFACT == 'true'
+    if: inputs.upload-artifact != false
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@master
@@ -1123,7 +1123,7 @@ jobs:
   build-rustdesk-android-universal:
     needs: [build-rustdesk-android]
     name: build rustdesk android universal apk
-    if: env.UPLOAD_ARTIFACT == 'true'
+    if: inputs.upload-artifact != false
     runs-on: ubuntu-24.04
     env:
       reltype: release
@@ -1642,7 +1642,7 @@ jobs:
             res/rustdesk-${{ env.VERSION }}*.zst
 
   build-rustdesk-linux-sciter:
-    if: env.UPLOAD_ARTIFACT == 'true'
+    if: inputs.upload-artifact != false
     runs-on: ${{ matrix.job.on }}
     name: build-rustdesk-linux-sciter ${{ matrix.job.target }}
     strategy:
@@ -1872,7 +1872,7 @@ jobs:
     name: Build appimage ${{ matrix.job.target }}
     needs: [build-rustdesk-linux]
     runs-on: ubuntu-22.04
-    if: env.UPLOAD_ARTIFACT == 'true'
+    if: inputs.upload-artifact != false
     strategy:
       fail-fast: false
       matrix:
@@ -1924,7 +1924,7 @@ jobs:
       - build-rustdesk-linux
       - build-rustdesk-linux-sciter
     runs-on: ${{ matrix.job.on }}
-    if: env.UPLOAD_ARTIFACT == 'true'
+    if: inputs.upload-artifact != false
     strategy:
       fail-fast: false
       matrix:
