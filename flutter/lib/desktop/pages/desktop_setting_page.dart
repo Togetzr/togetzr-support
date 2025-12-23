@@ -439,17 +439,17 @@ class _GeneralState extends State<_General> {
           value: 'light',
           groupValue: current,
           label: 'Light',
-          onChanged: isOptFixed ? null : onChanged),
+          onChanged: isOptFixed ? null : (value) { onChanged(value); }),
       _Radio<String>(context,
           value: 'dark',
           groupValue: current,
           label: 'Dark',
-          onChanged: isOptFixed ? null : onChanged),
+          onChanged: isOptFixed ? null : (value) { onChanged(value); }),
       _Radio<String>(context,
           value: 'system',
           groupValue: current,
           label: 'Follow System',
-          onChanged: isOptFixed ? null : onChanged),
+          onChanged: isOptFixed ? null : (value) { onChanged(value); }),
     ]);
   }
 
@@ -1928,7 +1928,7 @@ class _DisplayState extends State<_Display> {
             value: d[0] as String,
             groupValue: groupValue,
             label: d[1] as String,
-            onChanged: onChanged);
+            onChanged: (value) { onChanged(value); });
       }).toList(),
     );
   }
