@@ -273,8 +273,21 @@ jobs:
       - name: Rename executable for MSI compatibility
         if: env.UPLOAD_ARTIFACT == 'true'
         run: |
+          Write-Host "Checking for executable..."
           if (Test-Path ./rustdesk/togetzr_support.exe) {
+            Write-Host "Found togetzr_support.exe, creating copy as 'Togetzr Support.exe'..."
             Copy-Item ./rustdesk/togetzr_support.exe ./rustdesk/"Togetzr Support.exe" -Force
+            if (Test-Path ./rustdesk/"Togetzr Support.exe") {
+              Write-Host "Successfully created 'Togetzr Support.exe'"
+            } else {
+              Write-Error "Failed to create 'Togetzr Support.exe'"
+              exit 1
+            }
+          } else {
+            Write-Error "togetzr_support.exe not found in ./rustdesk/"
+            Write-Host "Contents of ./rustdesk/:"
+            Get-ChildItem ./rustdesk/ | Select-Object Name, Length
+            exit 1
           }
 
       - name: Build msi
