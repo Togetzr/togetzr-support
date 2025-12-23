@@ -182,6 +182,24 @@ jobs:
         run: |
           # Windows: build RustDesk
           python3 .\build.py --portable --hwcodec --flutter --vram --skip-portable-pack
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "build.py failed with exit code $LASTEXITCODE"
+            Write-Host "Checking Flutter build directory..."
+            if (Test-Path ./flutter/build/windows/x64/runner) {
+              Get-ChildItem ./flutter/build/windows/x64/runner -Recurse | Select-Object FullName
+            } else {
+              Write-Host "Flutter build directory does not exist"
+            }
+            exit 1
+          }
+          if (-not (Test-Path ./flutter/build/windows/x64/runner/Release)) {
+            Write-Error "Flutter build output directory not found: ./flutter/build/windows/x64/runner/Release"
+            Write-Host "Contents of ./flutter/build/windows/x64/runner:"
+            if (Test-Path ./flutter/build/windows/x64/runner) {
+              Get-ChildItem ./flutter/build/windows/x64/runner | Select-Object Name
+            }
+            exit 1
+          }
           mv ./flutter/build/windows/x64/runner/Release ./rustdesk
 
           # Download usbmmidd_v2.zip and extract it to ./rustdesk
