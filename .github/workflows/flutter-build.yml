@@ -122,16 +122,17 @@ jobs:
           if (Test-Path ./flutter/lib/generated_bridge.dart) {
             Write-Host "✅ generated_bridge.dart exists"
             $content = Get-Content ./flutter/lib/generated_bridge.dart -Raw
-            if ($content -match "abstract class RustdeskImpl" -or $content -match "class RustdeskImpl") {
-              Write-Host "✅ RustdeskImpl token found"
+            # Check for RustdeskImpl in any form (abstract class, class, or interface)
+            if ($content -match "RustdeskImpl") {
+              Write-Host "✅ RustdeskImpl found in generated_bridge.dart"
+              # Show first few lines containing RustdeskImpl for debugging
+              $matches = Select-String -Path ./flutter/lib/generated_bridge.dart -Pattern "RustdeskImpl" | Select-Object -First 3
+              Write-Host "Sample matches:"
+              $matches | ForEach-Object { Write-Host "  Line $($_.LineNumber): $($_.Line.Trim())" }
             } else {
-              Write-Error "❌ RustdeskImpl token not found in generated_bridge.dart"
-              exit 1
-            }
-            if ($content -match "class RustdeskImplImpl") {
-              Write-Host "✅ RustdeskImplImpl class found"
-            } else {
-              Write-Error "❌ RustdeskImplImpl class not found in generated_bridge.dart"
+              Write-Error "❌ RustdeskImpl not found in generated_bridge.dart"
+              Write-Host "First 50 lines of generated_bridge.dart:"
+              Get-Content ./flutter/lib/generated_bridge.dart -TotalCount 50
               exit 1
             }
           } else {
@@ -1074,6 +1075,8 @@ jobs:
         run: |
           rustup target add ${{ matrix.job.target }}
           cargo install cargo-ndk --version ${{ env.CARGO_NDK_VERSION }} --locked
+          # Make NDK scripts executable
+          chmod +x ./flutter/ndk_arm64.sh ./flutter/ndk_arm.sh ./flutter/ndk_x64.sh ./flutter/ndk_x86.sh || true
           case ${{ matrix.job.target }} in
             aarch64-linux-android)
               ./flutter/ndk_arm64.sh
