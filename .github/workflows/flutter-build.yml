@@ -69,7 +69,7 @@ jobs:
   build-RustDeskTempTopMostWindow:
     uses: ./.github/workflows/third-party-RustDeskTempTopMostWindow.yml
     with:
-      upload-artifact: ${{ inputs.upload-artifact || 'true' }}
+      upload-artifact: ${{ inputs.upload-artifact != false }}
       target: windows-2022
       configuration: Release
       platform: x64
