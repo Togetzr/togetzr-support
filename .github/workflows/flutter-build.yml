@@ -122,15 +122,15 @@ jobs:
           if (Test-Path ./flutter/lib/generated_bridge.dart) {
             Write-Host "✅ generated_bridge.dart exists"
             $content = Get-Content ./flutter/lib/generated_bridge.dart -Raw
-            # Check for RustdeskImpl in any form (abstract class, class, or interface)
-            if ($content -match "RustdeskImpl") {
-              Write-Host "✅ RustdeskImpl found in generated_bridge.dart"
-              # Show first few lines containing RustdeskImpl for debugging
-              $matches = Select-String -Path ./flutter/lib/generated_bridge.dart -Pattern "RustdeskImpl" | Select-Object -First 3
+            # Check for TogetzrSupport (new name) or RustdeskImpl (old name) for compatibility
+            if ($content -match "abstract class TogetzrSupport" -or $content -match "abstract class RustdeskImpl") {
+              Write-Host "✅ Bridge class found in generated_bridge.dart"
+              # Show first few lines containing the class for debugging
+              $matches = Select-String -Path ./flutter/lib/generated_bridge.dart -Pattern "(TogetzrSupport|RustdeskImpl)" | Select-Object -First 3
               Write-Host "Sample matches:"
               $matches | ForEach-Object { Write-Host "  Line $($_.LineNumber): $($_.Line.Trim())" }
             } else {
-              Write-Error "❌ RustdeskImpl not found in generated_bridge.dart"
+              Write-Error "❌ Bridge class (TogetzrSupport/RustdeskImpl) not found in generated_bridge.dart"
               Write-Host "First 50 lines of generated_bridge.dart:"
               Get-Content ./flutter/lib/generated_bridge.dart -TotalCount 50
               exit 1
@@ -1481,8 +1481,8 @@ jobs:
             echo "❌ generated_bridge.dart not found"
             exit 1
           fi
-          if ! grep -q "RustdeskImpl" ./flutter/lib/generated_bridge.dart; then
-            echo "❌ RustdeskImpl not found in generated_bridge.dart"
+          if ! grep -qE "(TogetzrSupport|RustdeskImpl)" ./flutter/lib/generated_bridge.dart; then
+            echo "❌ Bridge class (TogetzrSupport/RustdeskImpl) not found in generated_bridge.dart"
             head -n 50 ./flutter/lib/generated_bridge.dart
             exit 1
           fi

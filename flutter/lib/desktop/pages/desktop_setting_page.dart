@@ -1812,7 +1812,7 @@ class _DisplayState extends State<_Display> {
           value: kRemoteImageQualityCustom,
           groupValue: groupValue,
           label: 'Custom',
-          onChanged: isOptFixed ? null : onChanged),
+          onChanged: isOptFixed ? null : (value) { onChanged(value); }),
       Offstage(
         offstage: groupValue != kRemoteImageQualityCustom,
         child: customImageQualitySetting(),
