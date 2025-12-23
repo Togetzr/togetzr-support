@@ -9,6 +9,16 @@ on:
       upload-tag:
         type: string
         default: "nightly"
+  workflow_dispatch:
+    inputs:
+      upload-artifact:
+        type: boolean
+        default: true
+        description: 'Upload build artifacts'
+      upload-tag:
+        type: string
+        default: "nightly"
+        description: 'Tag name for release'
 
 # NOTE: F-Droid builder script 'flutter/build_fdroid.sh' reads environment
 # variables from this workflow!
