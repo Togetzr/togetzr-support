@@ -347,6 +347,9 @@ jobs:
         run: |
           pushd ./res/msi
           python preprocess.py --arp -d ../../rustdesk --app-name "Togetzr Support" -v "${{ env.VERSION }}" -m "Togetzr"
+          if ($LASTEXITCODE -ne 0) { Write-Error "preprocess.py failed with exit code $LASTEXITCODE"; exit $LASTEXITCODE }
+          Write-Host "Includes.wxi after preprocess:"
+          Get-Content ./Package/Includes.wxi -ErrorAction Stop | Select-Object -First 80 | ForEach-Object { Write-Host $_ }
           nuget restore msi.sln
           msbuild msi.sln -p:Configuration=Release -p:Platform=x64 /p:TargetVersion=Windows10
           mv ./Package/bin/x64/Release/en-us/Package.msi ../../SignOutput/togetzr-support-${{ env.VERSION }}-${{ matrix.job.arch }}.msi

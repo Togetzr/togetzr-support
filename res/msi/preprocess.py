@@ -454,6 +454,9 @@ def prepare_resources():
 
 def init_global_vars(dist_dir, app_name, args):
     dist_app = dist_dir.joinpath(app_name + ".exe")
+    if not dist_app.exists():
+        print(f"Error: exe not found: {dist_app}")
+        return False
 
     def read_process_output(args):
         process = subprocess.Popen(
@@ -480,11 +483,17 @@ def init_global_vars(dist_dir, app_name, args):
             raise ValueError(f"Invalid revision version: {args.revision_version}")    
         g_version = f"{g_version}.{args.revision_version}"
 
-    g_build_date = read_process_output("--build-date")
+    # Some builds (e.g., certain Flutter runners) may not support `--build-date`.
+    # Use a safe fallback (current time) instead of failing the entire MSI build.
+    build_date_out = read_process_output("--build-date")
     build_date_pattern = re.compile(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}")
-    if not build_date_pattern.match(g_build_date):
-        print(f"Error: build date {g_build_date} not found in {dist_app}")
-        return False
+    if build_date_pattern.match(build_date_out):
+        g_build_date = build_date_out
+    else:
+        print(
+            f"Warning: build date '{build_date_out}' not found in {dist_app}; "
+            f"using current time '{g_build_date}'."
+        )
 
     return True
 
