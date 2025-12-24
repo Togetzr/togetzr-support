@@ -1,7 +1,7 @@
 import 'native_model.dart' if (dart.library.html) 'web_model.dart';
 // TogetzrSupport is imported via native_model.dart or web_model.dart
-import 'package:flutter_hbb/generated_bridge.dart' show TogetzrSupport, TogetzrSupportImpl
-    if (dart.library.html) 'package:flutter_hbb/web/bridge.dart' show RustdeskImpl;
+import 'package:flutter_hbb/generated_bridge.dart' show TogetzrSupport
+    if (dart.library.html) 'package:flutter_hbb/web/bridge.dart' show TogetzrSupport;
 
 final platformFFI = PlatformFFI.instance;
 final localeName = PlatformFFI.localeName;

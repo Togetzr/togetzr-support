@@ -362,7 +362,9 @@ jobs:
 
       - name: Publish Release
         uses: softprops/action-gh-release@v1
-        if: env.UPLOAD_ARTIFACT == 'true'
+        # Avoid failing CI on repos where GITHUB_TOKEN can't create releases (403).
+        # Artifacts are still uploaded via upload-artifact steps.
+        if: env.UPLOAD_ARTIFACT == 'true' && github.event_name == 'workflow_dispatch'
         with:
           prerelease: true
           tag_name: ${{ env.TAG_NAME }}
@@ -521,7 +523,9 @@ jobs:
 
       - name: Publish Release
         uses: softprops/action-gh-release@v1
-        if: env.UPLOAD_ARTIFACT == 'true'
+        # Avoid failing CI on repos where GITHUB_TOKEN can't create releases (403).
+        # Artifacts are still uploaded via upload-artifact steps.
+        if: env.UPLOAD_ARTIFACT == 'true' && github.event_name == 'workflow_dispatch'
         with:
           prerelease: true
           tag_name: ${{ env.TAG_NAME }}

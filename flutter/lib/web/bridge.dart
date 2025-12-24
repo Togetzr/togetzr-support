@@ -2022,3 +2022,8 @@ class RustdeskImpl {
 
   void dispose() {}
 }
+
+// Keep the native/generated bridge class name usable on web builds.
+// On native platforms, FRB generates `abstract class TogetzrSupport`.
+// On web, our JS bridge is `RustdeskImpl`, so we alias it for shared code.
+typedef TogetzrSupport = RustdeskImpl;
