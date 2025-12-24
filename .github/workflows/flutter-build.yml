@@ -365,6 +365,14 @@ jobs:
           case "$BASE_URL" in *-2) ;; *) BASE_URL="${BASE_URL}-2" ;; esac
           BASE_URL="$BASE_URL" SECRET_KEY="$SECRET_KEY" python3 res/job.py sign_files ./SignOutput
 
+      - name: Upload portable executable
+        if: env.UPLOAD_ARTIFACT == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: togetzr-support-portable-windows-${{ matrix.job.arch }}
+          path: SignOutput/togetzr-support-*.exe
+          retention-days: 30
+
       - name: Publish Release
         uses: softprops/action-gh-release@v1
         # Avoid failing CI on repos where GITHUB_TOKEN can't create releases (403).
