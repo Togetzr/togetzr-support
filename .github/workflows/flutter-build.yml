@@ -72,7 +72,8 @@ jobs:
   build-RustDeskTempTopMostWindow:
     uses: ./.github/workflows/third-party-RustDeskTempTopMostWindow.yml
     with:
-      upload-artifact: ${{ inputs.upload-artifact != false }}
+      # Always upload this artifact; it's required by the Windows flutter build.
+      upload-artifact: true
       target: windows-2022
       configuration: Release
       platform: x64
@@ -111,7 +112,7 @@ jobs:
           submodules: recursive
 
       - name: Restore bridge files
-        uses: actions/download-artifact@master
+        uses: actions/download-artifact@v4
         with:
           name: bridge-artifact
           path: ./
@@ -282,15 +283,16 @@ jobs:
           fi
 
       - name: Download RustDeskTempTopMostWindow artifacts
-        uses: actions/download-artifact@master
+        uses: actions/download-artifact@v4
         if: env.UPLOAD_ARTIFACT == 'true'
+        continue-on-error: true
         with:
           name: topmostwindow-artifacts
           path: "./rustdesk"
 
       - name: Upload unsigned
         if: env.UPLOAD_ARTIFACT == 'true'
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v4
         with:
           name: rustdesk-unsigned-windows-${{ matrix.job.arch }}
           path: rustdesk
@@ -533,7 +535,8 @@ jobs:
             ./SignOutput/rustdesk-*.exe
 
   build-rustdesk-ios:
-    if: inputs.upload-artifact != false
+    # Keep push builds fast/reliable: build Windows MSI only on push.
+    if: github.event_name == 'workflow_dispatch' && inputs.upload-artifact != false
     name: build rustdesk ios ipa
     runs-on: ${{ matrix.job.os }}
     needs: [generate-bridge]
@@ -653,6 +656,8 @@ jobs:
 
 
   build-for-macOS:
+    # Keep push builds fast/reliable: build Windows MSI only on push.
+    if: github.event_name == 'workflow_dispatch'
     name: ${{ matrix.job.target }}
     runs-on: ${{ matrix.job.os }}
     needs: [generate-bridge]
@@ -915,6 +920,8 @@ jobs:
           files: rustdesk-${{ env.VERSION }}-unsigned.tar.gz
 
   build-rustdesk-android:
+    # Keep push builds fast/reliable: build Windows MSI only on push.
+    if: github.event_name == 'workflow_dispatch'
     needs: [generate-bridge]
     name: build rustdesk android apk ${{ matrix.job.target }}
     runs-on: ${{ matrix.job.os }}
@@ -1394,6 +1401,8 @@ jobs:
             signed-apk/rustdesk-${{ env.VERSION }}-universal${{ env.suffix }}.apk
 
   build-rustdesk-linux:
+    # Keep push builds fast/reliable: build Windows MSI only on push.
+    if: github.event_name == 'workflow_dispatch'
     needs: [generate-bridge]
     name: build rustdesk linux ${{ matrix.job.target }}
     runs-on: ${{ matrix.job.on }}
@@ -2100,7 +2109,8 @@ jobs:
             flatpak/rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}${{ matrix.job.suffix }}.flatpak
 
   build-rustdesk-web:
-    if: False
+    # Keep push builds fast/reliable: build Windows MSI only on push.
+    if: github.event_name == 'workflow_dispatch'
     name: build-rustdesk-web
     runs-on: ubuntu-22.04
     permissions:
