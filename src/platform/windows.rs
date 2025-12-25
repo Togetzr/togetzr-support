@@ -1981,13 +1981,34 @@ pub fn run_uac(exe: &str, arg: &str) -> ResultType<bool> {
 }
 
 pub fn check_super_user_permission() -> ResultType<bool> {
-    run_uac(
-        std::env::current_exe()?
-            .to_string_lossy()
-            .to_string()
-            .as_str(),
-        "--version",
-    )
+    // IMPORTANT:
+    // Do NOT call `run_uac()` here. That triggers a real UAC prompt (secure desktop),
+    // which blocks unattended/remote usage. We only need to *detect* whether the
+    // current user can perform admin actions.
+    //
+    // Strategy:
+    // - If already elevated or running as SYSTEM, return true.
+    // - Otherwise, check whether the current token is in the local Administrators group.
+    if is_root() {
+        return Ok(true);
+    }
+    if is_elevated(None).unwrap_or(false) {
+        return Ok(true);
+    }
+
+    use hbb_common::platform::windows::RAIIHandle;
+    unsafe {
+        let handle = GetCurrentProcess();
+        let mut token: HANDLE = mem::zeroed();
+        if OpenProcessToken(handle, TOKEN_QUERY, &mut token) == FALSE {
+            bail!(
+                "Failed to open process token, error {}",
+                io::Error::last_os_error()
+            )
+        }
+        let _token = RAIIHandle(token);
+        is_user_token_admin(token)
+    }
 }
 
 pub fn elevate(arg: &str) -> ResultType<bool> {

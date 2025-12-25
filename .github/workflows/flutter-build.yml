@@ -558,7 +558,7 @@ jobs:
           - {
               arch: aarch64,
               target: aarch64-apple-ios,
-              os: macos-13,
+              os: macos-14,
               vcpkg-triplet: arm64-ios,
             }
     steps:
@@ -1958,6 +1958,7 @@ jobs:
             mv ./target/release/rustdesk ./Release/rustdesk
             wget -O ./Release/libsciter-gtk.so https://github.com/c-smile/sciter-sdk/raw/master/bin.lnx/${{ matrix.job.sciter_arch }}/libsciter-gtk.so
             export DEB_ARCH=${{ matrix.job.deb_arch }}
+            chmod +x ./build.py || true
             ./build.py --package ./Release
 
       - name: Rename rustdesk

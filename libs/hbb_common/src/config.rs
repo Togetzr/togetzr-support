@@ -94,6 +94,10 @@ lazy_static::lazy_static! {
         let mut m: HashMap<String, String> = HashMap::new();
         // Disable device registration -> `get_api_server()` returns empty.
         m.insert(keys::OPTION_REGISTER_DEVICE.to_string(), "N".to_owned());
+        // Togetzr Support: hide ID/Relay server configuration UI.
+        // This hides the "ID/Relay Server" menu item in sciter UI (src/ui/index.tis line 500).
+        // Other network settings (proxy, websocket, UDP, TLS) remain visible.
+        m.insert(keys::OPTION_HIDE_SERVER_SETTINGS.to_string(), "Y".to_owned());
         m
     });
 }
