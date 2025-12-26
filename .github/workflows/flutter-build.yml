@@ -1148,8 +1148,11 @@ jobs:
               cp ./target/${{ matrix.job.target }}/release/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/arm64-v8a/librustdesk.so
               # build flutter
               pushd flutter
-              flutter build apk "--${{ matrix.job.reltype }}" --target-platform android-arm64 --split-per-abi --verbose || {
-                echo "Flutter Android build failed for arm64"
+              flutter build apk "--${{ matrix.job.reltype }}" --target-platform android-arm64 --split-per-abi --verbose 2>&1 | tee flutter_android_arm64.log || {
+                echo "Flutter Android build failed for arm64, showing last 100 lines:"
+                tail -100 flutter_android_arm64.log 2>/dev/null || echo "No log file found"
+                echo "Flutter doctor output:"
+                flutter doctor -v
                 exit 1
               }
               mv build/app/outputs/flutter-apk/app-arm64-v8a-${{ matrix.job.reltype }}.apk ../rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}${{ matrix.job.suffix }}.apk
@@ -1160,8 +1163,11 @@ jobs:
               cp ./target/${{ matrix.job.target }}/release/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/armeabi-v7a/librustdesk.so
               # build flutter
               pushd flutter
-              flutter build apk "--${{ matrix.job.reltype }}" --target-platform android-arm --split-per-abi --verbose || {
-                echo "Flutter Android build failed for armv7"
+              flutter build apk "--${{ matrix.job.reltype }}" --target-platform android-arm --split-per-abi --verbose 2>&1 | tee flutter_android_armv7.log || {
+                echo "Flutter Android build failed for armv7, showing last 100 lines:"
+                tail -100 flutter_android_armv7.log 2>/dev/null || echo "No log file found"
+                echo "Flutter doctor output:"
+                flutter doctor -v
                 exit 1
               }
               mv build/app/outputs/flutter-apk/app-armeabi-v7a-${{ matrix.job.reltype }}.apk ../rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}${{ matrix.job.suffix }}.apk
@@ -1172,8 +1178,11 @@ jobs:
               cp ./target/${{ matrix.job.target }}/release/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/x86_64/librustdesk.so
               # build flutter
               pushd flutter
-              flutter build apk "--${{ matrix.job.reltype }}" --target-platform android-x64 --split-per-abi --verbose || {
-                echo "Flutter Android build failed for x86_64"
+              flutter build apk "--${{ matrix.job.reltype }}" --target-platform android-x64 --split-per-abi --verbose 2>&1 | tee flutter_android_x86_64.log || {
+                echo "Flutter Android build failed for x86_64, showing last 100 lines:"
+                tail -100 flutter_android_x86_64.log 2>/dev/null || echo "No log file found"
+                echo "Flutter doctor output:"
+                flutter doctor -v
                 exit 1
               }
               mv build/app/outputs/flutter-apk/app-x86_64-${{ matrix.job.reltype }}.apk ../rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}${{ matrix.job.suffix }}.apk
@@ -2174,14 +2183,15 @@ jobs:
         shell: bash
         run: |
           pushd flutter/web/js
-          npm install yarn -g
-          npm install typescript -g
-          npm install protoc -g
+          npm install yarn -g || { echo "Failed to install yarn"; exit 1; }
+          npm install typescript -g || { echo "Failed to install typescript"; exit 1; }
+          npm install protoc -g || { echo "Failed to install protoc"; exit 1; }
           # Install protoc first, see: https://google.github.io/proto-lens/installing-protoc.html
-          npm install ts-proto
+          npm install ts-proto || { echo "Failed to install ts-proto"; exit 1; }
           # Only works with vite <= 2.8, see: https://github.com/vitejs/vite/blob/main/docs/guide/build.md#chunking-strategy
-          npm install vite@2.8
-          yarn install && yarn build
+          npm install vite@2.8 || { echo "Failed to install vite"; exit 1; }
+          yarn install || { echo "Failed: yarn install"; exit 1; }
+          yarn build || { echo "Failed: yarn build"; exit 1; }
           popd
 
           pushd flutter/web
@@ -2197,9 +2207,11 @@ jobs:
 
           pushd flutter
           # Build with verbose output for debugging
-          flutter build web --release --verbose || {
-            echo "Flutter web build failed, showing last 50 lines of output:"
-            tail -50 flutter.log 2>/dev/null || echo "No log file found"
+          flutter build web --release --verbose 2>&1 | tee flutter_web_build.log || {
+            echo "Flutter web build failed, showing last 100 lines of output:"
+            tail -100 flutter_web_build.log 2>/dev/null || echo "No log file found"
+            echo "Flutter doctor output:"
+            flutter doctor -v
             exit 1
           }
           cd build
